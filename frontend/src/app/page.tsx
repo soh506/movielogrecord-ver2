@@ -1,0 +1,43 @@
+import Link from 'next/link';
+import { Movie } from '@/types';
+
+async function getMovies(): Promise<Movie[]> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+  const res = await fetch(`${apiUrl}/movies/`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.results ?? data;
+}
+
+export default async function Home() {
+  const movies = await getMovies();
+
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <div className="max-w-3xl mx-auto py-12 px-4">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">映画視聴記録</h1>
+        </div>
+
+        {movies.length === 0 ? (
+          <p className="text-gray-500">映画の記録がまだありません。</p>
+        ) : (
+          <ul className="space-y-3">
+            {movies.map((movie) => (
+              <li key={movie.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <Link href={`/movies/${movie.id}`} className="block hover:opacity-75 transition-opacity">
+                  <p className="text-lg font-semibold text-gray-900">{movie.title}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {movie.director_name} ・ {movie.watch_date}
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </main>
+  );
+}

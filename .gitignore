@@ -1,8 +1,26 @@
+# Python
 *.pyc
 *~
-__pychache__
+__pycache__
 myenv
+*.egg-info
+.pytest_cache
+
+# Django
 db.sqlite3
+backend/.env
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+
+# OS
 .DS_Store
 .vscode
 
+# Terraform
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/*.tfvars
