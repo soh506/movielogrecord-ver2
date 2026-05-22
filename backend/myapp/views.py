@@ -25,6 +25,9 @@ class LogViewSet(viewsets.ModelViewSet):
     queryset = Log.objects.all()
     serializer_class = LogSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 
 # --- Legacy Django template views (kept for reference) ---
 
