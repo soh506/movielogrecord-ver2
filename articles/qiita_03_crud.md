@@ -257,6 +257,80 @@ async function handleSubmit(e: React.FormEvent) {
 
 ---
 
+## つまずいたポイント
+
+### 1. 監督追加後にフォームの入力内容が消える
+
+**症状：** 映画追加フォームでタイトルや視聴日を入力した後、「＋ 監督を追加」をクリックして監督追加ページに遷移し戻ってくると、入力内容がすべて消えていた。
+
+**原因：** Next.js でページ間を遷移すると React のコンポーネントが再マウントされ、`useState` の状態がリセットされる。
+
+**解決策：** 別ページに遷移する前に `sessionStorage` にフォームの状態を保存し、戻ってきたタイミングで復元する。
+
+```typescript
+// 遷移前に保存
+function handleAddDirector() {
+  sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ title, directorId, watchDate, logText, logRating }));
+  router.push('/directors/new?returnTo=/movies/new');
+}
+
+// マウント時に復元
+useEffect(() => {
+  const draft = sessionStorage.getItem(DRAFT_KEY);
+  if (draft) {
+    const saved = JSON.parse(draft);
+    setTitle(saved.title ?? '');
+    setDirectorId(saved.directorId ?? '');
+    setWatchDate(saved.watchDate ?? '');
+    sessionStorage.removeItem(DRAFT_KEY);
+  }
+}, []);
+```
+
+`localStorage` と違い `sessionStorage` はタブを閉じると消えるので、フォームの一時保存用途にちょうどよい。
+
+---
+
+### 2. DELETE リクエストで `fetchWithAuth` がエラーになる
+
+**症状：** 映画削除（`DELETE /api/movies/{id}/`）を実行すると、DRF は `204 No Content` を返すが、`fetchWithAuth` の中で `res.json()` を呼んでいるためエラーになった。
+
+**原因：** HTTP 204 はボディが空なので `JSON.parse` に失敗する。
+
+**解決策：** ステータスコードが 204 の場合は `res.json()` をスキップして `null` を返すようにした。
+
+```typescript
+export async function fetchWithAuth(path: string, options: RequestInit = {}) {
+  // ...
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  if (res.status === 204) return null;  // ← 追加
+  return res.json();
+}
+```
+
+---
+
+### 3. ローカルでマイグレーションが実行できない
+
+**症状：** モデルを変更してマイグレーションを生成しようとしたが、`python manage.py makemigrations` が `ModuleNotFoundError: No module named 'django'` で失敗した。
+
+**原因その1：** 仮想環境を作成していなかった。
+
+**原因その2：** `brew install python` でインストールされた Python のバージョンが 3.14 で、Django 3.2 が依存している `cgi` モジュールが Python 3.13 以降で削除されていた。
+
+**解決策：** Python 3.12 をインストールして仮想環境を作り直した。
+
+```bash
+brew install python@3.12
+/opt/homebrew/bin/python3.12 -m venv backend/.venv
+source backend/.venv/bin/activate
+pip install -r backend/requirements.txt
+```
+
+Python のバージョンと使用するフレームワークの対応関係は事前に確認しておく必要があった。Docker コンテナは `python:3.11-slim` を使っているので問題なかったが、ローカル環境はデフォルトで最新 Python が入るため注意が必要。
+
+---
+
 ## ページ構成まとめ
 
 | URL | 内容 |
