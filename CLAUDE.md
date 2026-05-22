@@ -13,7 +13,7 @@ Djangoの学習目的で作った映画視聴記録アプリ。
 | レイヤー | 技術 | 理由 |
 |---|---|---|
 | フロントエンド | Next.js（TypeScript + Tailwind CSS、App Router） | 求人市場でのデファクトスタンダード。Reactの現実解。 |
-| バックエンド | Django 3.0.2 + Django REST Framework | 既存コードを流用。APIサーバーとして使う。 |
+| バックエンド | Django 3.2.25 + Django REST Framework | 既存コードを流用。APIサーバーとして使う。 |
 | 認証 | JWT（djangorestframework-simplejwt） | SPA + 別ドメイン構成との相性。実務パターンの習得。 |
 | DB（ローカル） | SQLite | 単体起動時のシンプルさ。 |
 | DB（Docker/本番） | PostgreSQL（RDS） | 本番標準。SQLiteは本番不可。 |
@@ -27,15 +27,24 @@ Djangoの学習目的で作った映画視聴記録アプリ。
 movielogrecord-ver2/
 ├── backend/              ← Django REST Framework
 │   ├── config/           ← settings.py, urls.py
-│   ├── myapp/            ← models, views(DRF ViewSets), serializers
+│   ├── myapp/            ← models, views(DRF ViewSets), serializers, migrations
 │   ├── requirements.txt
+│   ├── .venv/            ← Python 3.12 仮想環境（.gitignore済み）
 │   └── Dockerfile
 ├── frontend/             ← Next.js（TypeScript + Tailwind）
 │   ├── src/
 │   │   ├── app/          ← App Router ページ
+│   │   │   ├── page.tsx          ← 映画一覧
+│   │   │   ├── login/            ← ログイン
+│   │   │   ├── movies/new/       ← 映画追加
+│   │   │   ├── movies/[id]/      ← 映画詳細・ログ管理
+│   │   │   ├── movies/[id]/edit/ ← 映画編集
+│   │   │   └── directors/new/    ← 監督追加
+│   │   ├── components/   ← AuthGuard
 │   │   ├── types/        ← 型定義（Movie, Director, Log）
-│   │   └── lib/          ← API クライアント（fetchWithAuth）
+│   │   └── lib/          ← API クライアント（fetchWithAuth, login, logout）
 │   └── Dockerfile
+├── articles/             ← Qiita記事（3本作成済み）
 ├── infra/                ← Terraform（未着手）
 ├── docker-compose.yml    ← PostgreSQL + Django + Next.js
 └── .gitignore
@@ -106,9 +115,13 @@ docker-compose up
 
 | # | タイトル | 状態 |
 |---|---|---|
-| #1 | docs: README.mdを作成する | コミット済み・実質完了 |
-| #2 | frontend: フロントエンド環境を作成する | `feature/frontend-setup` で実装済み・PR未 |
-| #3 | auth: ログイン機能を追加する | 未着手 |
+| #1 | docs: README.mdを作成する | 完了 |
+| #2 | frontend: フロントエンド環境を作成する | 完了・マージ済み |
+| #3 | auth: ログイン機能を追加する | 完了・マージ済み |
+| #6 | backend: Logモデルに星評価フィールドを追加 | 完了・マージ済み |
+| #7 | frontend: 映画の追加・編集・削除を実装 | 完了・マージ済み |
+| #8 | frontend: 監督の追加機能を実装 | 完了・マージ済み |
+| #9 | frontend: 視聴ログの追加・星評価機能を実装 | 完了・マージ済み |
 
 ## コミット規則
 
@@ -142,9 +155,25 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-## 今後の予定
+## 現在の進捗
 
-1. `feature/frontend-setup` のPRを作成・マージ
-2. issue #3（ログイン機能）: JWT認証フローをフロントエンドまで実装
-3. `infra/` にTerraformでAWSインフラをコード化
-4. CI/CD（GitHub Actions）を整備してAWSにデプロイ
+フロントエンドの CRUD 実装まで完了。次は AWS デプロイ前の仕上げとインフラ構築。
+
+### 残タスク（優先順）
+
+1. **アクセストークンのリフレッシュ処理** — 60分でトークンが切れた際の自動再取得
+2. **エラー・ローディング表示の整備** — 現状は `catch` で握りつぶしている箇所が多い
+3. **Terraform で AWS インフラをコード化**（`infra/` 未着手）
+   - ECS Fargate（バックエンド）
+   - RDS PostgreSQL
+   - Amplify（フロントエンド）
+   - ALB
+4. **CI/CD（GitHub Actions）** → AWS へ自動デプロイ
+
+### Qiita 記事の進捗
+
+| # | タイトル | 状態 |
+|---|---|---|
+| #1 | フロントエンド環境構築編 | 作成済み（articles/qiita_01_frontend_setup.md） |
+| #2 | JWT認証フロー実装編 | 作成済み（articles/qiita_02_auth.md） |
+| #3 | CRUD実装編 | 作成済み（articles/qiita_03_crud.md） |
