@@ -7,32 +7,59 @@ import AuthGuard from '@/components/AuthGuard';
 
 const DRAFT_KEY = 'movieFormDraft';
 
+function StarSelector({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => onChange(null)}
+        className={`text-xs px-2 py-0.5 rounded border ${value === null ? 'bg-gray-200 border-gray-400 text-gray-700' : 'border-gray-300 text-gray-400 hover:bg-gray-50'}`}
+      >
+        なし
+      </button>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          className={`text-xl leading-none ${star <= (value ?? 0) ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-300'}`}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function NewMoviePage() {
   const router = useRouter();
   const [directors, setDirectors] = useState<Director[]>([]);
   const [title, setTitle] = useState('');
   const [directorId, setDirectorId] = useState('');
   const [watchDate, setWatchDate] = useState('');
+  const [logText, setLogText] = useState('');
+  const [logRating, setLogRating] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const draft = sessionStorage.getItem(DRAFT_KEY);
     if (draft) {
-      const { title, directorId, watchDate } = JSON.parse(draft);
-      setTitle(title ?? '');
-      setDirectorId(directorId ?? '');
-      setWatchDate(watchDate ?? '');
+      const saved = JSON.parse(draft);
+      setTitle(saved.title ?? '');
+      setDirectorId(saved.directorId ?? '');
+      setWatchDate(saved.watchDate ?? '');
+      setLogText(saved.logText ?? '');
+      setLogRating(saved.logRating ?? null);
       sessionStorage.removeItem(DRAFT_KEY);
     }
-
     fetchWithAuth('/directors/')
       .then((data) => setDirectors(data.results ?? data))
       .catch(() => {});
   }, []);
 
   function handleAddDirector() {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ title, directorId, watchDate }));
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ title, directorId, watchDate, logText, logRating }));
     router.push('/directors/new?returnTo=/movies/new');
   }
 
@@ -41,10 +68,16 @@ function NewMoviePage() {
     setError('');
     setLoading(true);
     try {
-      await fetchWithAuth('/movies/', {
+      const movie = await fetchWithAuth('/movies/', {
         method: 'POST',
         body: JSON.stringify({ title, director: Number(directorId), watch_date: watchDate }),
       });
+      if (logText.trim()) {
+        await fetchWithAuth('/logs/', {
+          method: 'POST',
+          body: JSON.stringify({ text: logText, rating: logRating, movie: movie.id }),
+        });
+      }
       router.push('/');
     } catch {
       setError('保存に失敗しました');
@@ -74,7 +107,7 @@ function NewMoviePage() {
               <button
                 type="button"
                 onClick={handleAddDirector}
-                className="text-xs text-blue-600 hover:text-blue-800"
+                className="text-xs border border-blue-300 text-blue-600 rounded px-2 py-0.5 hover:bg-blue-50 transition-colors"
               >
                 ＋ 監督を追加
               </button>
@@ -101,6 +134,24 @@ function NewMoviePage() {
               required
             />
           </div>
+
+          <hr className="border-gray-100" />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">評価（任意）</label>
+            <StarSelector value={logRating} onChange={setLogRating} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">感想（任意）</label>
+            <textarea
+              value={logText}
+              onChange={(e) => setLogText(e.target.value)}
+              rows={3}
+              placeholder="感想を入力..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button
