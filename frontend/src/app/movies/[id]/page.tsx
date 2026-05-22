@@ -166,7 +166,7 @@ function MovieDetailPage() {
             {!addingLog && (
               <button
                 onClick={() => setAddingLog(true)}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm border border-blue-300 text-blue-600 rounded-md px-3 py-1 hover:bg-blue-50 transition-colors"
               >
                 ＋ ログを追加
               </button>
@@ -251,16 +251,16 @@ function MovieDetailPage() {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <StarDisplay rating={log.rating} />
-                        <div className="flex gap-3">
+                        <div className="flex gap-2">
                           <button
                             onClick={() => startEditLog(log)}
-                            className="text-xs text-gray-400 hover:text-gray-600"
+                            className="text-xs border border-gray-300 text-gray-600 rounded px-2 py-0.5 hover:bg-gray-50 transition-colors"
                           >
                             編集
                           </button>
                           <button
                             onClick={() => handleDeleteLog(log.id)}
-                            className="text-xs text-red-400 hover:text-red-600"
+                            className="text-xs border border-red-300 text-red-500 rounded px-2 py-0.5 hover:bg-red-50 transition-colors"
                           >
                             削除
                           </button>
