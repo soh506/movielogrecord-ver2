@@ -1,3 +1,19 @@
+---
+title: "DjangoアプリをNext.js + DRF + JWT + AWSに移行してみた #1 フロントエンド環境構築編"
+tags:
+  - Django
+  - Next.js
+  - DRF
+  - JWT
+  - AWS
+private: false
+updated_at: ''
+iid: qiita_01_frontend_setup
+organization_url_name: null
+slide: false
+ignorePublish: false
+---
+
 # DjangoアプリをNext.js + DRF + JWT + AWSに移行してみた #1 フロントエンド環境構築編
 
 ## はじめに
