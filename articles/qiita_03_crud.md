@@ -8,7 +8,7 @@ tags:
   - AWS
 private: false
 updated_at: ''
-iid: qiita_03_crud
+id: qiita_03_crud
 organization_url_name: null
 slide: false
 ignorePublish: false

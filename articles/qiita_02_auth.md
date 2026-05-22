@@ -8,7 +8,7 @@ tags:
   - AWS
 private: false
 updated_at: ''
-iid: qiita_02_auth
+id: qiita_02_auth
 organization_url_name: null
 slide: false
 ignorePublish: false
