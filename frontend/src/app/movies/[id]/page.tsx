@@ -250,7 +250,12 @@ function MovieDetailPage() {
                   ) : (
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <StarDisplay rating={log.rating} />
+                        <div className="flex items-center gap-3">
+                          <StarDisplay rating={log.rating} />
+                          <span className="text-xs text-gray-400">
+                            {new Date(log.created_at).toLocaleDateString('ja-JP')}
+                          </span>
+                        </div>
                         <div className="flex gap-2">
                           <button
                             onClick={() => startEditLog(log)}
