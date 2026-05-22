@@ -8,6 +8,7 @@ export type Log = {
   text: string;
   rating: number | null;
   created_at: string;
+  username: string | null;
   movie: number;
 };
 

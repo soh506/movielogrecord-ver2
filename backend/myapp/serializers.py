@@ -9,10 +9,12 @@ class DirectorSerializer(serializers.ModelSerializer):
 
 
 class LogSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+
     class Meta:
         model = Log
-        fields = ['id', 'text', 'rating', 'created_at', 'movie']
-        read_only_fields = ['created_at']
+        fields = ['id', 'text', 'rating', 'created_at', 'username', 'movie']
+        read_only_fields = ['created_at', 'username']
 
 
 class MovieSerializer(serializers.ModelSerializer):

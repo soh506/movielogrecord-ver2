@@ -254,6 +254,7 @@ function MovieDetailPage() {
                           <StarDisplay rating={log.rating} />
                           <span className="text-xs text-gray-400">
                             {new Date(log.created_at).toLocaleDateString('ja-JP')}
+                            {log.username && `　${log.username}`}
                           </span>
                         </div>
                         <div className="flex gap-2">
