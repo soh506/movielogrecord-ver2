@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Movie } from '@/types';
 
 async function getMovies(): Promise<Movie[]> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+  const apiUrl = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
   const res = await fetch(`${apiUrl}/movies/`, {
     cache: 'no-store',
   });
