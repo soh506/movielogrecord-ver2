@@ -149,11 +149,11 @@ movielogrecord-ver2/
 `backend/requirements.txt` を作成する。
 
 ```
-Django==3.0.2
-djangorestframework==3.11.0
-djangorestframework-simplejwt==4.6.0
-django-cors-headers==3.5.0
-psycopg2-binary==2.8.6
+Django==3.2.25
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.2.2
+django-cors-headers==4.3.1
+psycopg2-binary==2.9.9
 ```
 
 `backend/config/settings.py` にDRF・CORS・JWTの設定を追加する。
@@ -173,6 +173,7 @@ if os.environ.get('DB_HOST'):
             'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
             'HOST': os.environ.get('DB_HOST', 'db'),
             'PORT': os.environ.get('DB_PORT', '5432'),
+            'OPTIONS': {'options': '-c timezone=UTC'},
         }
     }
 else:
@@ -461,6 +462,7 @@ services:
       - "3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000/api
+      API_URL: http://backend:8000/api
     depends_on:
       - backend
 
