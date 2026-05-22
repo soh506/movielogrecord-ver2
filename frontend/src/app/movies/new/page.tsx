@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Director } from '@/types';
 import { fetchWithAuth } from '@/lib/api';
 import AuthGuard from '@/components/AuthGuard';
+
+const DRAFT_KEY = 'movieFormDraft';
 
 function NewMoviePage() {
   const router = useRouter();
@@ -16,10 +17,24 @@ function NewMoviePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const draft = sessionStorage.getItem(DRAFT_KEY);
+    if (draft) {
+      const { title, directorId, watchDate } = JSON.parse(draft);
+      setTitle(title ?? '');
+      setDirectorId(directorId ?? '');
+      setWatchDate(watchDate ?? '');
+      sessionStorage.removeItem(DRAFT_KEY);
+    }
+
     fetchWithAuth('/directors/')
       .then((data) => setDirectors(data.results ?? data))
       .catch(() => {});
   }, []);
+
+  function handleAddDirector() {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ title, directorId, watchDate }));
+    router.push('/directors/new?returnTo=/movies/new');
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,12 +71,13 @@ function NewMoviePage() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-sm font-medium text-gray-700">監督</label>
-              <Link
-                href="/directors/new?returnTo=/movies/new"
+              <button
+                type="button"
+                onClick={handleAddDirector}
                 className="text-xs text-blue-600 hover:text-blue-800"
               >
                 ＋ 監督を追加
-              </Link>
+              </button>
             </div>
             <select
               value={directorId}
