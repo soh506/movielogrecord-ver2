@@ -63,9 +63,23 @@ movielogrecord-ver2/
 
 ### バックエンドのみ（SQLite）
 
+仮想環境は Python 3.12 で作成すること（3.13以降は Django 3.2 と非互換）。
+
+**初回セットアップ（仮想環境の作成）：**
+
 ```bash
 cd backend
+/opt/homebrew/bin/python3.12 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+pip install setuptools  # pkg_resources が必要なパッケージ対策
+```
+
+**2回目以降：**
+
+```bash
+cd backend
+source .venv/bin/activate
 python manage.py migrate
 python manage.py runserver
 ```
