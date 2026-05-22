@@ -23,6 +23,7 @@ class Log(models.Model):
 
     text = models.TextField()
     rating = models.IntegerField(choices=RATING_CHOICES, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, verbose_name="タイトル", related_name='log')
 
     def __str__(self):
