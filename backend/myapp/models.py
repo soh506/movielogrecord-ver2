@@ -19,8 +19,12 @@ class Movie(models.Model):
 
 
 class Log(models.Model):
+    RATING_CHOICES = [(i, i) for i in range(1, 6)]
+
     text = models.TextField()
+    rating = models.IntegerField(choices=RATING_CHOICES, null=True, blank=True)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, verbose_name="タイトル", related_name='log')
+
     def __str__(self):
         return self.text
 
