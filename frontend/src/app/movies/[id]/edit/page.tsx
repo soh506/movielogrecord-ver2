@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Director } from '@/types';
 import { fetchWithAuth } from '@/lib/api';
 import AuthGuard from '@/components/AuthGuard';
@@ -60,7 +61,15 @@ function EditMoviePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">監督</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">監督</label>
+              <Link
+                href={`/directors/new?returnTo=/movies/${params.id}/edit`}
+                className="text-xs text-blue-600 hover:text-blue-800"
+              >
+                ＋ 監督を追加
+              </Link>
+            </div>
             <select
               value={directorId}
               onChange={(e) => setDirectorId(e.target.value)}
