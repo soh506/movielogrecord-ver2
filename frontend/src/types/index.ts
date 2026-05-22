@@ -1,0 +1,19 @@
+export type Director = {
+  id: number;
+  name: string;
+};
+
+export type Log = {
+  id: number;
+  text: string;
+  movie: number;
+};
+
+export type Movie = {
+  id: number;
+  title: string;
+  watch_date: string;
+  director: number;
+  director_name: string;
+  logs: Log[];
+};
