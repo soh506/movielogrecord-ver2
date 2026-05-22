@@ -138,6 +138,36 @@ fix(backend): ログ削除時のリダイレクト先を修正
 - 機能ごとにブランチを切ってPRを出す
 - ブランチ名: `feature/<内容>` / `fix/<内容>`
 
+## 記事管理フロー
+
+技術記事は Qiita と Zenn の両方に投稿する。
+
+| 役割 | 場所 |
+|---|---|
+| 初稿・下書き | `movielogrecord-ver2/articles/`（ここで書き始める） |
+| Qiita編集・投稿 | `~/Documents/qiita-contents/public/` |
+| Zenn編集・投稿 | `~/Documents/zenn-contents/articles/` |
+
+**手順：**
+1. `articles/` に元原稿を書く
+2. Qiita用・Zenn用にそれぞれコピーしてフロントマターを調整
+3. コピー後は各プラットフォームのディレクトリを直接編集する（元原稿との同期は不要）
+
+**投稿コマンド：**
+```bash
+# Qiita
+cd ~/Documents/qiita-contents
+npx qiita publish <ファイルのベース名>
+
+# Zenn（プレビュー）
+cd ~/Documents/zenn-contents
+npx zenn preview
+```
+
+**注意：** Qiita に投稿すると `id` フィールドが UUID に自動更新される。元原稿にコピーし直すと上書きされるので注意。
+
+---
+
 ## 環境変数
 
 ### backend/.env（.env.example を参照）
