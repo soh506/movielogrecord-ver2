@@ -6,6 +6,7 @@ export type Director = {
 export type Log = {
   id: number;
   text: string;
+  rating: number | null;
   movie: number;
 };
 

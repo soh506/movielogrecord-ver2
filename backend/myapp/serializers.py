@@ -11,7 +11,7 @@ class DirectorSerializer(serializers.ModelSerializer):
 class LogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Log
-        fields = ['id', 'text', 'movie']
+        fields = ['id', 'text', 'rating', 'movie']
 
 
 class MovieSerializer(serializers.ModelSerializer):
