@@ -15,6 +15,7 @@ function EditDirectorPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!params.id || params.id === '_shell') return;
     fetchWithAuth(`/directors/${params.id}/`)
       .then((data) => { setName(data.name); setInitialLoading(false); })
       .catch(() => { setLoadError(true); setInitialLoading(false); });

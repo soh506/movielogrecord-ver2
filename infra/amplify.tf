@@ -28,16 +28,36 @@ resource "aws_amplify_app" "frontend" {
     NEXT_PUBLIC_API_URL = "https://${aws_cloudfront_distribution.api.domain_name}/api"
   }
 
-  # Amplify の <*> は末尾にしか置けないため、/edit は Next.js クライアントルーターに委ねる
+  # 静的ルートを先に明示（ワイルドカードより優先させる）
   custom_rule {
-    source = "/movies/<*>"
-    target = "/movies/_shell/index.html"
+    source = "/movies/new/"
+    target = "/movies/new/index.html"
     status = "200"
   }
 
   custom_rule {
-    source = "/directors/<*>"
+    source = "/directors/new/"
+    target = "/directors/new/index.html"
+    status = "200"
+  }
+
+  # 編集ページを先に（詳細ページのワイルドカードより前に置く必要あり）
+  custom_rule {
+    source = "/movies/<id>/edit/"
+    target = "/movies/_shell/edit/index.html"
+    status = "200"
+  }
+
+  custom_rule {
+    source = "/directors/<id>/edit/"
     target = "/directors/_shell/edit/index.html"
+    status = "200"
+  }
+
+  # 動的ルート（/movies/123/ など）を _shell にリライト
+  custom_rule {
+    source = "/movies/<*>"
+    target = "/movies/_shell/index.html"
     status = "200"
   }
 }

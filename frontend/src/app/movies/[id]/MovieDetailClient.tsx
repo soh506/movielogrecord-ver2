@@ -66,6 +66,7 @@ function MovieDetailPage() {
   }
 
   useEffect(() => {
+    if (!params.id || params.id === '_shell') return;
     loadMovie();
     fetchCurrentUser().then((u) => setCurrentUser(u.username)).catch(() => {});
   }, [params.id]);

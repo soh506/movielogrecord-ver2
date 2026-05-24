@@ -19,6 +19,7 @@ function EditMoviePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!params.id || params.id === '_shell') return;
     Promise.all([
       fetchWithAuth(`/movies/${params.id}/`),
       fetchWithAuth('/directors/'),
