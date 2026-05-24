@@ -59,14 +59,22 @@ function MovieDetailPage() {
   const [editLogText, setEditLogText] = useState('');
   const [editLogRating, setEditLogRating] = useState<number | null>(null);
 
+  function getUrlId() {
+    return typeof window !== 'undefined'
+      ? window.location.pathname.split('/').filter(Boolean)[1]
+      : String(params.id);
+  }
+
   function loadMovie() {
-    fetchWithAuth(`/movies/${params.id}/`)
+    fetchWithAuth(`/movies/${getUrlId()}/`)
       .then(setMovie)
       .catch(() => setLoadError(true));
   }
 
   useEffect(() => {
-    if (!params.id || params.id === '_shell') return;
+    if (typeof window === 'undefined') return;
+    const id = getUrlId();
+    if (!id) return;
     loadMovie();
     fetchCurrentUser().then((u) => setCurrentUser(u.username)).catch(() => {});
   }, [params.id]);
@@ -75,7 +83,7 @@ function MovieDetailPage() {
     setDeleteLoading(true);
     setDeleteError('');
     try {
-      await fetchWithAuth(`/movies/${params.id}/`, { method: 'DELETE' });
+      await fetchWithAuth(`/movies/${movie!.id}/`, { method: 'DELETE' });
       router.push('/');
     } catch (e) {
       setDeleteError(
@@ -93,7 +101,7 @@ function MovieDetailPage() {
     try {
       await fetchWithAuth('/logs/', {
         method: 'POST',
-        body: JSON.stringify({ text: newLogText, rating: newLogRating, movie: Number(params.id) }),
+        body: JSON.stringify({ text: newLogText, rating: newLogRating, movie: movie!.id }),
       });
       setNewLogText('');
       setNewLogRating(null);
@@ -117,7 +125,7 @@ function MovieDetailPage() {
     try {
       await fetchWithAuth(`/logs/${logId}/`, {
         method: 'PUT',
-        body: JSON.stringify({ text: editLogText, rating: editLogRating, movie: Number(params.id) }),
+        body: JSON.stringify({ text: editLogText, rating: editLogRating, movie: movie!.id }),
       });
       setEditingLogId(null);
       loadMovie();

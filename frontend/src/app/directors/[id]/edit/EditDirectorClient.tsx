@@ -13,10 +13,14 @@ function EditDirectorPage() {
   const [loadError, setLoadError] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resolvedId, setResolvedId] = useState('');
 
   useEffect(() => {
-    if (!params.id || params.id === '_shell') return;
-    fetchWithAuth(`/directors/${params.id}/`)
+    if (typeof window === 'undefined') return;
+    const id = window.location.pathname.split('/').filter(Boolean)[1];
+    if (!id) return;
+    setResolvedId(id);
+    fetchWithAuth(`/directors/${id}/`)
       .then((data) => { setName(data.name); setInitialLoading(false); })
       .catch(() => { setLoadError(true); setInitialLoading(false); });
   }, [params.id]);
@@ -26,7 +30,7 @@ function EditDirectorPage() {
     setError('');
     setLoading(true);
     try {
-      await fetchWithAuth(`/directors/${params.id}/`, {
+      await fetchWithAuth(`/directors/${resolvedId}/`, {
         method: 'PUT',
         body: JSON.stringify({ name }),
       });

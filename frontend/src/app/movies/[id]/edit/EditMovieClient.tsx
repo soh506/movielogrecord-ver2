@@ -17,11 +17,15 @@ function EditMoviePage() {
   const [loadError, setLoadError] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resolvedId, setResolvedId] = useState('');
 
   useEffect(() => {
-    if (!params.id || params.id === '_shell') return;
+    if (typeof window === 'undefined') return;
+    const id = window.location.pathname.split('/').filter(Boolean)[1];
+    if (!id) return;
+    setResolvedId(id);
     Promise.all([
-      fetchWithAuth(`/movies/${params.id}/`),
+      fetchWithAuth(`/movies/${id}/`),
       fetchWithAuth('/directors/'),
     ]).then(([movie, directorsData]) => {
       setTitle(movie.title);
@@ -37,11 +41,11 @@ function EditMoviePage() {
     setError('');
     setLoading(true);
     try {
-      await fetchWithAuth(`/movies/${params.id}/`, {
+      await fetchWithAuth(`/movies/${resolvedId}/`, {
         method: 'PUT',
         body: JSON.stringify({ title, director: Number(directorId), watch_date: watchDate }),
       });
-      router.push(`/movies/${params.id}`);
+      router.push(`/movies/${resolvedId}`);
     } catch {
       setError('保存に失敗しました');
     } finally {
@@ -85,7 +89,7 @@ function EditMoviePage() {
               <label className="block text-sm font-medium text-gray-700">監督</label>
               <button
                 type="button"
-                onClick={() => router.push(`/directors/new?returnTo=/movies/${params.id}/edit`)}
+                onClick={() => router.push(`/directors/new?returnTo=/movies/${resolvedId}/edit`)}
                 className="text-xs border border-blue-300 text-blue-600 rounded px-2 py-0.5 hover:bg-blue-50 transition-colors"
               >
                 ＋ 監督を追加
@@ -124,7 +128,7 @@ function EditMoviePage() {
             </button>
             <button
               type="button"
-              onClick={() => router.push(`/movies/${params.id}`)}
+              onClick={() => router.push(`/movies/${resolvedId}`)}
               className="flex-1 bg-white border border-gray-300 text-gray-700 rounded-md py-2 text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               キャンセル

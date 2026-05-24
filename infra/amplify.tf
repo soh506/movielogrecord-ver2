@@ -28,7 +28,7 @@ resource "aws_amplify_app" "frontend" {
     NEXT_PUBLIC_API_URL = "https://${aws_cloudfront_distribution.api.domain_name}/api"
   }
 
-  # 静的ルートを先に明示（ワイルドカードより優先させる）
+  # 静的ルートを先に明示（スラッシュあり・なし両方、ワイルドカードより優先させる）
   custom_rule {
     source = "/movies/new/"
     target = "/movies/new/index.html"
@@ -36,7 +36,19 @@ resource "aws_amplify_app" "frontend" {
   }
 
   custom_rule {
+    source = "/movies/new"
+    target = "/movies/new/index.html"
+    status = "200"
+  }
+
+  custom_rule {
     source = "/directors/new/"
+    target = "/directors/new/index.html"
+    status = "200"
+  }
+
+  custom_rule {
+    source = "/directors/new"
     target = "/directors/new/index.html"
     status = "200"
   }
