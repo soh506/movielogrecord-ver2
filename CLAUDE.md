@@ -187,18 +187,50 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api
 
 ## 現在の進捗
 
-フロントエンドの CRUD 実装まで完了。次は AWS デプロイ前の仕上げとインフラ構築。
+Terraform による AWS インフラ構築・ECS デプロイまで完了。次は Amplify フロントエンドの SSR 問題を解消してフルスタックで動かす。
 
 ### 残タスク（優先順）
 
-1. **アクセストークンのリフレッシュ処理** — 60分でトークンが切れた際の自動再取得
-2. **エラー・ローディング表示の整備** — 現状は `catch` で握りつぶしている箇所が多い
-3. **Terraform で AWS インフラをコード化**（`infra/` 未着手）
-   - ECS Fargate（バックエンド）
-   - RDS PostgreSQL
-   - Amplify（フロントエンド）
-   - ALB
-4. **CI/CD（GitHub Actions）** → AWS へ自動デプロイ
+1. ~~**アクセストークンのリフレッシュ処理**~~ — 完了
+2. ~~**トークンの httpOnly Cookie 化**~~ — 完了（Django Cookie ビュー + Next.js API Route プロキシ）
+3. ~~**エラー・ローディング表示の整備**~~ — 完了
+4. ~~**Terraform で AWS インフラをコード化**~~ — 完了（`infra/` にフラット構成で作成）
+5. **Amplify フロントエンドを AWS 上で動かす** — 要対応（下記参照）
+6. **CI/CD（GitHub Actions）** → AWS へ自動デプロイ
+
+### Amplify SSR 問題と対応方針
+
+**問題：** Next.js がプロキシ API Route（`/app/api/[...proxy]`）を使っているため SSR が必要。
+Amplify Gen 1 の `WEB_COMPUTE` は Next.js モノレポと相性が悪く `deploy-manifest.json` エラーが出る。
+
+**対応方針（どちらかを選ぶ）：**
+
+**A. 静的エクスポートに切り替える（簡単・30分）**
+- `lib/api.ts` の `API_BASE` を `NEXT_PUBLIC_API_URL` に変更（ALB を直接呼ぶ）
+- JWT を localStorage に戻す（Cookie 認証を廃止）
+- `next.config.ts` に `output: 'export'` を追加
+- Amplify の platform を `WEB`、baseDirectory を `frontend/out` に変更
+- Django の CORS に Amplify ドメインを追加
+
+**B. Amplify SSR アダプターを導入する（本格的・1時間）**
+- `@aws-amplify/adapter-nextjs` をインストール
+- Next.js を Amplify SSR 対応に設定
+- httpOnly Cookie 認証はそのまま維持できる
+
+**動作確認済み（terraform apply + destroy 済み）：**
+- ECS Fargate で Django API が起動（ALB 経由で 401 返却を確認）
+- RDS PostgreSQL へのマイグレーション成功
+- ECR へのイメージ push 成功
+- Amplify ビルドは成功（SSR の配信だけが未解決）
+
+**次回の手順：**
+```bash
+cd infra
+cp terraform.tfvars.example terraform.tfvars
+nano terraform.tfvars  # db_password / django_secret_key / github_token を入力
+terraform init
+terraform apply -auto-approve
+```
 
 ### Qiita 記事の進捗
 
@@ -207,3 +239,5 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api
 | #1 | フロントエンド環境構築編 | 作成済み（articles/qiita_01_frontend_setup.md） |
 | #2 | JWT認証フロー実装編 | 作成済み（articles/qiita_02_auth.md） |
 | #3 | CRUD実装編 | 作成済み（articles/qiita_03_crud.md） |
+| #4 | セキュリティ強化編（httpOnly Cookie）| 作成済み（articles/qiita_04_auth_security.md） |
+| #5 | Terraform・AWSデプロイ編 | 作成済み（articles/qiita_05_terraform_aws.md） |

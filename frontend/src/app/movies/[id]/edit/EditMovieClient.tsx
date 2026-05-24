@@ -1,85 +1,46 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Director } from '@/types';
 import { fetchWithAuth } from '@/lib/api';
 import AuthGuard from '@/components/AuthGuard';
+import Spinner from '@/components/Spinner';
 
-const DRAFT_KEY = 'movieFormDraft';
-
-function StarSelector({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
-  return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={() => onChange(null)}
-        className={`text-xs px-2 py-0.5 rounded border ${value === null ? 'bg-gray-200 border-gray-400 text-gray-700' : 'border-gray-300 text-gray-400 hover:bg-gray-50'}`}
-      >
-        なし
-      </button>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => onChange(star)}
-          className={`text-xl leading-none ${star <= (value ?? 0) ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-300'}`}
-        >
-          ★
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function NewMoviePage() {
+function EditMoviePage() {
+  const params = useParams();
   const router = useRouter();
   const [directors, setDirectors] = useState<Director[]>([]);
   const [title, setTitle] = useState('');
   const [directorId, setDirectorId] = useState('');
   const [watchDate, setWatchDate] = useState('');
-  const [logText, setLogText] = useState('');
-  const [logRating, setLogRating] = useState<number | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [directorsError, setDirectorsError] = useState(false);
 
   useEffect(() => {
-    const draft = sessionStorage.getItem(DRAFT_KEY);
-    if (draft) {
-      const saved = JSON.parse(draft);
-      setTitle(saved.title ?? '');
-      setDirectorId(saved.directorId ?? '');
-      setWatchDate(saved.watchDate ?? '');
-      setLogText(saved.logText ?? '');
-      setLogRating(saved.logRating ?? null);
-      sessionStorage.removeItem(DRAFT_KEY);
-    }
-    fetchWithAuth('/directors/')
-      .then((data) => setDirectors(data.results ?? data))
-      .catch(() => setDirectorsError(true));
-  }, []);
-
-  function handleAddDirector() {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ title, directorId, watchDate, logText, logRating }));
-    router.push('/directors/new?returnTo=/movies/new');
-  }
+    Promise.all([
+      fetchWithAuth(`/movies/${params.id}/`),
+      fetchWithAuth('/directors/'),
+    ]).then(([movie, directorsData]) => {
+      setTitle(movie.title);
+      setDirectorId(String(movie.director));
+      setWatchDate(movie.watch_date);
+      setDirectors(directorsData.results ?? directorsData);
+      setInitialLoading(false);
+    }).catch(() => { setLoadError(true); setInitialLoading(false); });
+  }, [params.id, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const movie = await fetchWithAuth('/movies/', {
-        method: 'POST',
+      await fetchWithAuth(`/movies/${params.id}/`, {
+        method: 'PUT',
         body: JSON.stringify({ title, director: Number(directorId), watch_date: watchDate }),
       });
-      if (logText.trim()) {
-        await fetchWithAuth('/logs/', {
-          method: 'POST',
-          body: JSON.stringify({ text: logText, rating: logRating, movie: movie.id }),
-        });
-      }
-      router.push('/');
+      router.push(`/movies/${params.id}`);
     } catch {
       setError('保存に失敗しました');
     } finally {
@@ -87,10 +48,26 @@ function NewMoviePage() {
     }
   }
 
+  if (initialLoading) return <main className="min-h-screen bg-gray-50"><Spinner /></main>;
+
+  if (loadError) return (
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <p className="text-sm text-red-600 mb-4">データの取得に失敗しました</p>
+        <button
+          onClick={() => router.push('/')}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          一覧に戻る
+        </button>
+      </div>
+    </main>
+  );
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-xl mx-auto py-12 px-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">映画を追加</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">映画を編集</h1>
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
@@ -107,13 +84,12 @@ function NewMoviePage() {
               <label className="block text-sm font-medium text-gray-700">監督</label>
               <button
                 type="button"
-                onClick={handleAddDirector}
+                onClick={() => router.push(`/directors/new?returnTo=/movies/${params.id}/edit`)}
                 className="text-xs border border-blue-300 text-blue-600 rounded px-2 py-0.5 hover:bg-blue-50 transition-colors"
               >
                 ＋ 監督を追加
               </button>
             </div>
-            {directorsError && <p className="text-xs text-red-600 mb-1">監督リストの取得に失敗しました</p>}
             <select
               value={directorId}
               onChange={(e) => setDirectorId(e.target.value)}
@@ -136,24 +112,6 @@ function NewMoviePage() {
               required
             />
           </div>
-
-          <hr className="border-gray-100" />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">評価（任意）</label>
-            <StarSelector value={logRating} onChange={setLogRating} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">感想（任意）</label>
-            <textarea
-              value={logText}
-              onChange={(e) => setLogText(e.target.value)}
-              rows={3}
-              placeholder="感想を入力..."
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button
@@ -165,7 +123,7 @@ function NewMoviePage() {
             </button>
             <button
               type="button"
-              onClick={() => router.push('/')}
+              onClick={() => router.push(`/movies/${params.id}`)}
               className="flex-1 bg-white border border-gray-300 text-gray-700 rounded-md py-2 text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               キャンセル
@@ -178,5 +136,5 @@ function NewMoviePage() {
 }
 
 export default function Page() {
-  return <AuthGuard><NewMoviePage /></AuthGuard>;
+  return <AuthGuard><EditMoviePage /></AuthGuard>;
 }

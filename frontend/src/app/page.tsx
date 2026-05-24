@@ -5,20 +5,23 @@ import { useRouter } from 'next/navigation';
 import { Movie } from '@/types';
 import { fetchWithAuth, logout } from '@/lib/api';
 import AuthGuard from '@/components/AuthGuard';
+import Spinner from '@/components/Spinner';
 
 
 function MovieList() {
   const router = useRouter();
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetchWithAuth('/movies/')
-      .then((data) => setMovies(data.results ?? data))
-      .catch(() => setMovies([]));
+      .then((data) => { setMovies(data.results ?? data); setLoading(false); })
+      .catch(() => { setError(true); setLoading(false); });
   }, []);
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     router.push('/login');
   }
 
@@ -27,12 +30,18 @@ function MovieList() {
       <div className="max-w-3xl mx-auto py-12 px-4">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">映画視聴記録</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Link
               href="/movies/new"
               className="bg-blue-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               ＋ 映画を追加
+            </Link>
+            <Link
+              href="/directors"
+              className="text-sm border border-gray-300 text-gray-600 rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors"
+            >
+              監督管理
             </Link>
             <button
               onClick={handleLogout}
@@ -43,7 +52,11 @@ function MovieList() {
           </div>
         </div>
 
-        {movies.length === 0 ? (
+        {loading ? (
+          <Spinner />
+        ) : error ? (
+          <p className="text-sm text-red-600">映画一覧の取得に失敗しました。ページを再読み込みしてください。</p>
+        ) : movies.length === 0 ? (
           <p className="text-gray-500">映画の記録がまだありません。</p>
         ) : (
           <ul className="space-y-3">
