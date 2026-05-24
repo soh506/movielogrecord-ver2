@@ -25,7 +25,7 @@ resource "aws_amplify_app" "frontend" {
   EOT
 
   environment_variables = {
-    NEXT_PUBLIC_API_URL = "http://${aws_lb.main.dns_name}/api"
+    NEXT_PUBLIC_API_URL = "https://${aws_cloudfront_distribution.api.domain_name}/api"
   }
 
   # Amplify の <*> は末尾にしか置けないため、/edit は Next.js クライアントルーターに委ねる

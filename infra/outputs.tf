@@ -17,3 +17,8 @@ output "amplify_default_domain" {
   description = "AmplifyのデフォルトドメインURL"
   value       = "https://${aws_amplify_app.frontend.default_domain}"
 }
+
+output "cloudfront_api_url" {
+  description = "CloudFront経由のAPIエンドポイント（HTTPS）"
+  value       = "https://${aws_cloudfront_distribution.api.domain_name}/api"
+}
